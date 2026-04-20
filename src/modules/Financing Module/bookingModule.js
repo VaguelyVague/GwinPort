@@ -1,20 +1,12 @@
 import { dataStore } from "./dataStore.js";
-import { generateId } from "./utils.js";
+import { generateId } from "../utils.js";
 
-export function createBooking(bookingData) {
+export function createBooking(data) {
   const bookings = dataStore.getBookings();
 
   const booking = {
     bookingId: generateId("BOOK"),
-    passengerName: bookingData.passengerName,
-    origin: bookingData.origin,
-    destination: bookingData.destination,
-    departureDate: bookingData.departureDate,
-    baseFare: bookingData.baseFare,
-    passengers: bookingData.passengers || 1,
-    travelClass: bookingData.travelClass || "Economy",
-    extraBaggage: bookingData.extraBaggage || 0,
-    insurance: bookingData.insurance || false,
+    ...data,
     paymentStatus: "Pending",
     bookingStatus: "Pending"
   };
@@ -25,24 +17,16 @@ export function createBooking(bookingData) {
   return booking;
 }
 
-export function confirmBookingAfterPayment(bookingId) {
+export function confirmBooking(bookingId) {
   const bookings = dataStore.getBookings();
   const booking = bookings.find(b => b.bookingId === bookingId);
 
-  if (!booking) {
-    return { success: false, message: "Booking not found." };
-  }
-
-  if (booking.paymentStatus !== "Paid") {
-    return { success: false, message: "Booking cannot be confirmed. Payment not completed." };
+  if (!booking || booking.paymentStatus !== "Paid") {
+    return { success: false };
   }
 
   booking.bookingStatus = "Confirmed";
   dataStore.saveBookings(bookings);
 
-  return {
-    success: true,
-    message: "Booking confirmed successfully.",
-    booking
-  };
+  return { success: true, booking };
 }
